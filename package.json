@@ -1,0 +1,17 @@
+{
+  "name": "demo-workspace",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix al-carbon run dev -- --host 127.0.0.1",
+    "build": "npm --prefix al-carbon run build",
+    "preview": "npm --prefix al-carbon run preview"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^4.5.14"
+  },
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  }
+}
