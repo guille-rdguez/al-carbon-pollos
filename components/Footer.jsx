@@ -1,6 +1,7 @@
 import { NAV_LINKS } from '../constants/nav';
 import { CONTACT_EMAIL, EVERYDAY_HOURS, LOCATIONS } from '../constants/locations';
 import { PICKUP_URL, DELIVERY_URL } from '../constants/urls';
+import { interpolate, useLanguage } from '../hooks/useLanguage';
 
 const SOCIAL = [
   {
@@ -24,20 +25,22 @@ const SOCIAL = [
 ];
 
 export default function Footer() {
+  const { t } = useLanguage();
+
   return (
-    <footer id="contact" className="bg-neutral-900 text-white">
-      <div className="bg-primary py-8 px-4">
+    <footer id="contact" className="bg-black text-white">
+      <div className="border-y border-primary/40 bg-primary py-8 px-4">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
           <div>
-            <h3 className="text-white font-black text-xl md:text-2xl">Listo para caerle a Al Carbon?</h3>
-            <p className="text-white/80 text-sm mt-0.5">Abierto diario {EVERYDAY_HOURS} en 5 ubicaciones de San Antonio.</p>
+            <h3 className="text-white font-black text-xl md:text-2xl">{t.footer.ctaTitle}</h3>
+            <p className="text-white/80 text-sm mt-0.5">{interpolate(t.footer.ctaCopy, { hours: EVERYDAY_HOURS })}</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
-            <a href={PICKUP_URL} target="_blank" rel="noopener noreferrer" className="px-6 py-3 rounded-full bg-white text-primary font-bold text-sm hover:bg-orange-50 transition-colors shadow-md">
-              Ordenar Pickup
+            <a href={PICKUP_URL} target="_blank" rel="noopener noreferrer" className="bg-white px-6 py-3 text-sm font-bold text-primary shadow-md transition-colors hover:bg-coal-50">
+              {t.common.pickup}
             </a>
-            <a href={DELIVERY_URL} target="_blank" rel="noopener noreferrer" className="px-6 py-3 rounded-full bg-white/15 border border-white/40 text-white font-bold text-sm hover:bg-white/25 transition-colors">
-              Pedir Delivery
+            <a href={DELIVERY_URL} target="_blank" rel="noopener noreferrer" className="border border-white/40 bg-black/20 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-white/20">
+              {t.common.delivery}
             </a>
           </div>
         </div>
@@ -50,7 +53,7 @@ export default function Footer() {
               <img
                 src="/assets/logo.png"
                 alt="Al Carbon logo"
-                className="h-14 w-auto object-contain rounded-[15px]"
+                className="h-14 w-14 rounded-full bg-white p-1 object-contain"
               />
               <div className="flex flex-col leading-none">
                 <span className="font-display text-2xl uppercase tracking-[0.04em] text-white">Al Carbon</span>
@@ -58,7 +61,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-neutral-400 text-sm leading-relaxed mb-5">
-              Pollo al carbon, parrilladas y burgers con 5 puntos activos en San Antonio. Marca real, fuego real, servicio real.
+              {t.footer.description}
             </p>
             <div className="flex gap-2">
               {SOCIAL.map((s) => (
@@ -68,7 +71,7 @@ export default function Footer() {
                   aria-label={s.label}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2.5 rounded-lg bg-white/8 text-neutral-400 hover:bg-primary hover:text-white transition-all duration-200"
+                  className="bg-white/10 p-2.5 text-neutral-400 transition-all duration-200 hover:bg-primary hover:text-white"
                 >
                   {s.icon}
                 </a>
@@ -77,12 +80,12 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-widest text-neutral-500 mb-4">Navegacion</h4>
+            <h4 className="font-bold text-xs uppercase tracking-widest text-neutral-500 mb-4">{t.footer.navTitle}</h4>
             <ul className="space-y-2.5">
-              {NAV_LINKS.map(({ href, label }) => (
+              {NAV_LINKS.map(({ href, key }) => (
                 <li key={href}>
                   <a href={href} className="text-neutral-400 text-sm hover:text-primary transition-colors">
-                    {label}
+                    {t.nav[key]}
                   </a>
                 </li>
               ))}
@@ -90,7 +93,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-widest text-neutral-500 mb-4">Sucursales</h4>
+            <h4 className="font-bold text-xs uppercase tracking-widest text-neutral-500 mb-4">{t.footer.locationsTitle}</h4>
             <ul className="space-y-2">
               {LOCATIONS.map((location) => (
                 <li key={location.name} className="text-sm">
@@ -106,14 +109,14 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-widest text-neutral-500 mb-4">Contacto y ordenes</h4>
+            <h4 className="font-bold text-xs uppercase tracking-widest text-neutral-500 mb-4">{t.footer.contactTitle}</h4>
             <ul className="space-y-3">
               <li className="flex items-start gap-2.5">
                 <svg className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="text-neutral-300 text-sm">5 ubicaciones activas en San Antonio,<br />incluyendo Culebra, Nacogdoches, Alamo Ranch y Marbach.</span>
+                <span className="text-neutral-300 text-sm">{t.footer.locationCopy}</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <svg className="h-4 w-4 text-primary flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -129,10 +132,10 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="#locations"
+                  href="/#locations"
                   className="inline-flex items-center gap-1.5 text-primary text-sm font-medium hover:underline"
                 >
-                  Ver todas las ubicaciones
+                  {t.footer.allLocations}
                   <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
@@ -145,8 +148,8 @@ export default function Footer() {
 
       <div className="border-t border-white/8 py-4 px-4">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-neutral-600">
-          <span>© {new Date().getFullYear()} Al Carbon. All rights reserved.</span>
-          <span>Hecho para San Antonio con fuego, pollo y mucho antojo.</span>
+          <span>© {new Date().getFullYear()} Al Carbon. {t.footer.rights}</span>
+          <span>{t.footer.made}</span>
         </div>
       </div>
     </footer>

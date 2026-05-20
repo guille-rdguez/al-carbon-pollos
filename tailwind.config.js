@@ -3,6 +3,7 @@ module.exports = {
   content: [
     "./index.html",
     "./HomePage.jsx",
+    "./CateringPage.jsx",
     "./index.jsx",
     "./components/**/*.jsx",
     "./hooks/**/*.js",
@@ -11,17 +12,28 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#E94E1B',
-          dark: '#B53A13',
-          light: '#FF6B3D',
+          DEFAULT: '#c60909',
+          dark: '#8f0606',
+          light: '#ef4444',
         },
-        orange: {
-          50:  '#FFF8F0',
-          100: '#FFF3E0',
-          200: '#FFE0B2',
-          400: '#FFA726',
-          500: '#FF9800',
-          600: '#FB8C00',
+        ruby: {
+          50:  '#fff1f1',
+          100: '#ffe3e3',
+          200: '#ffc9c9',
+          400: '#ef4444',
+          500: '#c60909',
+          600: '#a80707',
+          700: '#7f0505',
+        },
+        coal: {
+          50:  '#f6f3ef',
+          100: '#e8e0d6',
+          200: '#c9b9a5',
+          500: '#6c6258',
+          700: '#231f1d',
+          800: '#151312',
+          900: '#0b0b0b',
+          950: '#050505',
         },
         neutral: {
           50:  '#FAFAFA',
@@ -90,11 +102,11 @@ module.exports = {
         '4xl': '2rem',
       },
       boxShadow: {
-        'card':       '0 2px 12px 0 rgba(0,0,0,0.07)',
-        'card-hover': '0 8px 32px 0 rgba(233,78,27,0.16)',
-        'cta':        '0 4px 20px 0 rgba(233,78,27,0.40)',
-        'cta-hover':  '0 6px 28px 0 rgba(233,78,27,0.55)',
-        'nav':        '0 1px 16px 0 rgba(0,0,0,0.08)',
+        'card':       '0 18px 50px 0 rgba(5,5,5,0.10)',
+        'card-hover': '0 24px 70px 0 rgba(198,9,9,0.18)',
+        'cta':        '0 14px 34px 0 rgba(198,9,9,0.34)',
+        'cta-hover':  '0 18px 42px 0 rgba(198,9,9,0.48)',
+        'nav':        '0 16px 45px 0 rgba(0,0,0,0.18)',
       },
     },
   },

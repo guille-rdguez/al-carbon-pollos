@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
+import { useLanguage } from '../hooks/useLanguage';
 import { revealStyle } from '../utils/revealStyle';
-import { PICKUP_URL } from '../constants/urls';
 
-const EMERALD = 'bg-emerald-600 text-white';
+const DARK_BADGE = 'bg-coal-900 text-white';
 
 const MENU_ITEMS = [
   {
@@ -271,25 +271,25 @@ const CATEGORIES = [
 
 const BADGE_STYLES = {
   'Most Popular': 'bg-primary text-white',
-  'Fan Favorite': 'bg-orange-500 text-white',
-  'Best Value':   EMERALD,
-  'Best Seller':  EMERALD,
-  'Signature':    'bg-neutral-800 text-white',
-  'Para 2':       'bg-blue-600 text-white',
-  'Must Try':     'bg-purple-600 text-white',
-  'New':          'bg-blue-600 text-white',
+  'Fan Favorite': 'bg-primary-dark text-white',
+  'Best Value':   DARK_BADGE,
+  'Best Seller':  DARK_BADGE,
+  'Signature':    'bg-coal-800 text-white',
+  'Para 2':       'bg-coal-900 text-white',
+  'Must Try':     'bg-primary text-white',
+  'New':          'bg-coal-900 text-white',
 };
 
-function MenuCard({ item, index }) {
+function MenuCard({ item, index, officialLabel }) {
   const [ref, visible] = useScrollReveal(0.06);
 
   return (
     <div
       ref={ref}
-      className="bg-white rounded-3xl shadow-card hover:shadow-card-hover hover:-translate-y-2 transition-all duration-300 overflow-hidden group flex flex-col"
+      className="group flex flex-col overflow-hidden rounded-lg border border-coal-100 bg-white shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-card-hover"
       style={revealStyle(visible, { y: 28, duration: 0.55, delay: index * 65 })}
     >
-      <div className="relative overflow-hidden h-48 flex-shrink-0">
+      <div className="relative h-52 flex-shrink-0 overflow-hidden bg-coal-900">
         <img
           src={item.img}
           alt={item.name}
@@ -297,30 +297,26 @@ function MenuCard({ item, index }) {
           loading="lazy"
           onError={(e) => { e.currentTarget.src = '/assets/menu-chicken-placeholder.jpg'; }}
         />
-        <div className="absolute bottom-3 right-3 bg-neutral-900/80 backdrop-blur-sm text-white font-bold text-sm px-3 py-1 rounded-full">
+        <div className="absolute bottom-3 right-3 bg-primary px-3 py-1.5 text-sm font-black text-white shadow-cta">
           {item.price}
         </div>
         {item.badge && (
-          <div className={`absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full shadow ${BADGE_STYLES[item.badge] ?? 'bg-neutral-800 text-white'}`}>
+          <div className={`absolute top-3 left-3 px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.16em] shadow ${BADGE_STYLES[item.badge] ?? 'bg-coal-800 text-white'}`}>
             {item.badge}
           </div>
         )}
       </div>
 
-      <div className="p-5 flex flex-col gap-2 flex-1">
-        <h3 className="font-bold text-base text-neutral-900 leading-snug">{item.name}</h3>
-        <p className="text-neutral-500 text-sm leading-relaxed line-clamp-2 flex-1">{item.desc}</p>
-        <a
-          href={PICKUP_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-3 flex items-center justify-center gap-1.5 w-full py-2.5 rounded-full bg-primary text-white font-semibold text-sm shadow-cta hover:bg-primary-dark hover:shadow-cta-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-        >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Agregar al pedido
-        </a>
+      <div className="flex flex-1 flex-col gap-3 p-5">
+        <div>
+          <p className="mb-2 text-[11px] font-black uppercase tracking-[0.24em] text-primary">{item.category}</p>
+          <h3 className="font-display text-3xl uppercase leading-[0.9] tracking-[0.03em] text-coal-900">{item.name}</h3>
+        </div>
+        <p className="line-clamp-2 flex-1 text-sm leading-relaxed text-coal-500">{item.desc}</p>
+        <div className="mt-3 flex items-center justify-between border-t border-coal-100 pt-4">
+          <span className="text-[11px] font-black uppercase tracking-[0.24em] text-coal-400">{officialLabel}</span>
+          <span className="h-px w-12 bg-primary/50" />
+        </div>
       </div>
     </div>
   );
@@ -329,6 +325,7 @@ function MenuCard({ item, index }) {
 export default function FeaturedMenu() {
   const [active, setActive] = useState('all');
   const [titleRef, titleVisible] = useScrollReveal();
+  const { t } = useLanguage();
 
   const filtered = useMemo(
     () => active === 'all'
@@ -338,18 +335,18 @@ export default function FeaturedMenu() {
   );
 
   return (
-    <section id="menu" className="bg-neutral-50 py-16 md:py-20">
+    <section id="menu" className="bg-coal-50 py-20 text-coal-900 md:py-24">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
 
         <div
           ref={titleRef}
-          className="text-center mb-10"
+          className="mx-auto mb-10 max-w-3xl text-center"
           style={revealStyle(titleVisible, { y: 24 })}
         >
-          <span className="inline-block text-primary font-semibold text-sm uppercase tracking-widest mb-2">Menu de la Casa</span>
-          <h2 className="font-display text-5xl uppercase leading-[0.92] tracking-[0.03em] text-neutral-900 mb-3 md:text-6xl">El Menu Real</h2>
-          <p className="text-neutral-500 text-base max-w-md mx-auto">
-            Pollo asado al carbón y más — hecho al momento, con ingredientes frescos.
+          <span className="mb-3 inline-block text-sm font-black uppercase tracking-[0.32em] text-primary">{t.menu.eyebrow}</span>
+          <h2 className="mb-4 font-display text-5xl uppercase leading-[0.88] tracking-[0.03em] text-coal-900 md:text-7xl">{t.menu.title}</h2>
+          <p className="mx-auto max-w-2xl text-base leading-8 text-coal-500">
+            {t.menu.copy}
           </p>
         </div>
 
@@ -362,50 +359,42 @@ export default function FeaturedMenu() {
               <button
                 key={cat.key}
                 onClick={() => setActive(cat.key)}
-                className={`flex-shrink-0 snap-start px-4 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${
+                className={`flex-shrink-0 snap-start px-4 py-2.5 text-sm font-bold transition-all duration-200 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${
                   active === cat.key
                     ? 'bg-primary text-white shadow-cta'
-                    : 'bg-white text-neutral-600 border border-neutral-200 hover:border-primary hover:text-primary'
+                    : 'border border-coal-200 bg-white text-coal-600 hover:border-primary hover:text-primary'
                 }`}
               >
-                {cat.label}
+                {t.menu.categories[cat.key]}
               </button>
             ))}
           </div>
         </div>
 
         <div className="flex items-center justify-between mb-6">
-          <p className="text-neutral-400 text-sm">
-            {active === 'all' ? 'Favoritos de la casa' : `${filtered.length} platillo${filtered.length !== 1 ? 's' : ''}`}
+          <p className="text-coal-500 text-sm">
+            {active === 'all' ? t.menu.featured : `${filtered.length} ${t.menu.dishes}`}
           </p>
           {active === 'all' && (
             <button
               onClick={() => setActive('chicken')}
-              className="text-primary text-sm font-semibold hover:underline"
+              className="text-sm font-bold text-primary hover:underline"
             >
-              Ver menu completo →
+              {t.menu.viewFull} →
             </button>
           )}
         </div>
 
         <div className="grid grid-cols-1 gap-6 pb-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((item, idx) => (
-            <MenuCard key={item.id} item={item} index={idx} />
+            <MenuCard key={item.id} item={item} index={idx} officialLabel={t.menu.officialShort} />
           ))}
         </div>
 
-        <div className="text-center mt-10">
-          <a
-            href={PICKUP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-neutral-900 text-white font-bold text-base shadow-md hover:bg-neutral-800 hover:scale-[1.02] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-            Ordenar menu completo
-          </a>
+        <div className="mt-10 border-t border-coal-200 pt-6 text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-coal-400">
+            {t.menu.official}
+          </p>
         </div>
       </div>
     </section>
