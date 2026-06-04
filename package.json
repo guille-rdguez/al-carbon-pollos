@@ -1,12 +1,10 @@
 {
-
-  "name": "al-carbon-landing",
-  "version": "1.0.0",
+  "name": "demo-workspace",
   "private": true,
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "npm --prefix al-carbon run dev -- --host 127.0.0.1",
+    "build": "npm --prefix al-carbon run build",
+    "preview": "npm --prefix al-carbon run preview"
   },
   "dependencies": {
     "react": "^18.0.0",
