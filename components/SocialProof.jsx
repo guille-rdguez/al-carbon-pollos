@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { EVERYDAY_HOURS, LOCATIONS } from '../constants/locations';
 import { useScrollReveal } from '../hooks/useScrollReveal';
-import { useLanguage } from '../hooks/useLanguage';
+import { interpolate, useLanguage } from '../hooks/useLanguage';
 import { revealStyle } from '../utils/revealStyle';
 
 const LEAFLET_CSS_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
@@ -75,12 +75,37 @@ function LocationsMap({ activeLocation, onSelect, labels }) {
   const markers = useRef(new Map());
   const onSelectRef = useRef(onSelect);
   const [mapReady, setMapReady] = useState(true);
+  const [shouldLoadMap, setShouldLoadMap] = useState(false);
 
   useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
 
   useEffect(() => {
+    const element = mapEl.current;
+    if (!element || typeof window === 'undefined') return undefined;
+    if (!('IntersectionObserver' in window)) {
+      setShouldLoadMap(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldLoadMap(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '320px 0px' },
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!shouldLoadMap) return undefined;
+
     let cancelled = false;
 
     loadLeaflet()
@@ -136,7 +161,7 @@ function LocationsMap({ activeLocation, onSelect, labels }) {
         map.current = null;
       }
     };
-  }, []);
+  }, [shouldLoadMap]);
 
   useEffect(() => {
     const L = typeof window !== 'undefined' ? window.L : null;
@@ -230,15 +255,15 @@ function LocationCard({ location, index, active, onSelect, labels }) {
         </div>
 
         <p className="mt-3 text-[11px] leading-4 text-neutral-300">{location.address}</p>
-        <p className="mt-2 line-clamp-2 text-[11px] leading-4 text-neutral-400">{location.note}</p>
+        <p className="mt-2 line-clamp-2 text-[11px] leading-4 text-neutral-400">{labels.notes[location.noteKey]}</p>
 
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {location.tags.map((tag) => (
+          {location.tagKeys.map((tagKey) => (
             <span
-              key={tag}
+              key={tagKey}
               className="inline-flex border border-white/15 bg-white/[0.08] px-2 py-1 text-[10px] font-semibold text-white"
             >
-              {tag}
+              {labels.tags[tagKey]}
             </span>
           ))}
         </div>
@@ -270,7 +295,7 @@ function LocationCard({ location, index, active, onSelect, labels }) {
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex h-8 items-center justify-center border border-white/15 bg-white/[0.06] px-3 text-[11px] font-bold text-white transition-colors hover:border-primary hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-black"
-            aria-label={`Abrir ${location.name} en Google Maps`}
+            aria-label={interpolate(labels.mapsAria, { location: location.name })}
           >
             Maps
           </a>

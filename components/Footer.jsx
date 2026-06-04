@@ -6,7 +6,7 @@ import { interpolate, useLanguage } from '../hooks/useLanguage';
 const SOCIAL = [
   {
     label: 'Instagram',
-    href: 'https://instagram.com/alcarbonsatx',
+    href: 'https://www.instagram.com/alcarbonpollosasados/',
     icon: (
       <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
         <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5zm4.25 3.25a5.25 5.25 0 1 1 0 10.5a5.25 5.25 0 0 1 0-10.5zm0 1.5a3.75 3.75 0 1 0 0 7.5a3.75 3.75 0 0 0 0-7.5zm5.25.75a1 1 0 1 1-2 0a1 1 0 0 1 2 0z"/>
@@ -15,7 +15,7 @@ const SOCIAL = [
   },
   {
     label: 'Facebook',
-    href: 'https://facebook.com/alcarbonsatx',
+    href: 'https://www.facebook.com/ALCARBONPOLLOSASADOS',
     icon: (
       <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
         <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/>
@@ -104,7 +104,7 @@ export default function Footer() {
             </ul>
             <div className="mt-4 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-green-400 text-xs font-semibold">Horario diario {EVERYDAY_HOURS}</span>
+              <span className="text-green-400 text-xs font-semibold">{t.footer.dailyHours} {EVERYDAY_HOURS}</span>
             </div>
           </div>
 

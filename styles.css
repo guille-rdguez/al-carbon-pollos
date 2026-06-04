@@ -74,6 +74,13 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   display: none !important;
 }
 
+.locations-map .leaflet-tile {
+  border: 0 !important;
+  outline: 1px solid transparent;
+  width: 257px !important;
+  height: 257px !important;
+}
+
 .locations-map .leaflet-tooltip {
   border: 1px solid rgba(198, 9, 9, 0.45);
   background: rgba(10, 10, 10, 0.88);

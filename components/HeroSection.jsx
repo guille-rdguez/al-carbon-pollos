@@ -1,28 +1,8 @@
-import { useEffect, useState } from 'react';
 import { PICKUP_URL, DELIVERY_URL } from '../constants/urls';
 import { useLanguage } from '../hooks/useLanguage';
 
-const HERO_SLIDES = [
-  '/assets/cover.avif',
-  '/assets/whole-chicken.avif',
-  '/assets/half-chicken.webp',
-];
-
 export default function HeroSection() {
-  const [activeSlide, setActiveSlide] = useState(0);
   const { t } = useLanguage();
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return undefined;
-    }
-
-    const timer = window.setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % HERO_SLIDES.length);
-    }, 4200);
-
-    return () => window.clearInterval(timer);
-  }, []);
 
   return (
     <section
@@ -31,18 +11,14 @@ export default function HeroSection() {
     >
       {/* Background image */}
       <div className="absolute inset-0 z-0">
-        {HERO_SLIDES.map((slide, index) => (
-          <img
-            key={slide}
-            src={slide}
-            alt=""
-            aria-hidden="true"
-            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1400ms] ease-in-out ${
-              index === activeSlide ? 'opacity-100' : 'opacity-0'
-            }`}
-          />
-        ))}
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-black/40" />
+        <img
+          src="/assets/pollo-cover.webp"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover"
+          fetchPriority="high"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/70 to-black/25" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.92))]" />
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
       </div>
@@ -100,7 +76,7 @@ export default function HeroSection() {
               <p className="text-xs uppercase tracking-[0.22em] text-white/50">{t.common.locations}</p>
             </div>
             <div className="border-b border-white/10 py-4 sm:border-x sm:border-b-0 sm:border-white/10 sm:px-4">
-              <p className="font-display text-3xl uppercase text-white">11-9</p>
+              <p className="font-display text-3xl uppercase text-white">11AM - 9PM</p>
               <p className="text-xs uppercase tracking-[0.22em] text-white/50">{t.hero.hoursLabel}</p>
             </div>
             <div className="py-4 sm:pl-4">
@@ -113,7 +89,7 @@ export default function HeroSection() {
         <aside className="hidden border-l border-white/20 pl-7 text-white/75 lg:block animate-fade-in delay-500">
           <p className="text-xs font-black uppercase tracking-[0.32em] text-primary">{t.common.signature}</p>
           <h2 className="mt-4 font-display text-5xl uppercase leading-[0.88] tracking-[0.03em] text-white">
-            Whole Chicken
+            {t.hero.signatureTitle}
           </h2>
           <p className="mt-4 text-sm leading-7 text-white/50">
             {t.hero.signatureDesc}

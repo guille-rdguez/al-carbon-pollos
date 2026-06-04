@@ -8,251 +8,201 @@ const DARK_BADGE = 'bg-coal-900 text-white';
 const MENU_ITEMS = [
   {
     id: 1,
-    name: 'Whole Chicken',
-    desc: '8 piezas de pollo asado al carbón con arroz, cebolla asada, chile toreado, limón, tortillas de maíz, salsa verde y roja.',
     price: '$23.25',
     img: '/assets/whole-chicken.avif',
-    badge: 'Most Popular',
+    badgeKey: 'mostPopular',
     category: 'chicken',
     featured: true,
   },
   {
     id: 2,
-    name: 'Half Chicken',
-    desc: '4 piezas de pollo asado al carbón con arroz, cebolla asada, chile toreado, limón, tortillas de maíz, salsa verde y roja.',
     price: '$14.50',
     img: '/assets/half-chicken.webp',
-    badge: 'Fan Favorite',
+    badgeKey: 'fanFavorite',
     category: 'chicken',
     featured: true,
   },
   {
     id: 3,
-    name: 'Whole Chicken Only',
-    desc: '8 piezas de pollo asado al carbón — sin sides. Solo el puro pollo.',
     price: '$15.45',
     img: '/assets/whole-chicken-only.avif',
-    badge: null,
+    badgeKey: null,
     category: 'chicken',
     featured: false,
   },
   {
     id: 4,
-    name: 'Half Chicken Only',
-    desc: '4 piezas de pollo asado al carbón — sin sides. Solo el puro pollo.',
     price: '$10.25',
     img: '/assets/half-chicken-only.avif',
-    badge: null,
+    badgeKey: null,
     category: 'chicken',
     featured: false,
   },
   {
     id: 5,
-    name: '1 lb Beef Fajita',
-    desc: '1 lb fajita de res a la parrilla con arroz 12 oz, cebollas y pimientos asados, chile toreado, ensalada, tortillas, limón y salsas.',
     price: '$31.50',
     img: '/assets/1lb-beef-fajita.webp',
-    badge: null,
+    badgeKey: null,
     category: 'beef',
     featured: false,
   },
   {
     id: 6,
-    name: '½ lb Beef Fajita',
-    desc: '½ lb fajita de res a la parrilla con arroz 8 oz, cebollas y pimientos asados, chile toreado, ensalada, tortillas, limón y salsas.',
     price: '$17.85',
     img: '/assets/half-lb-beef-fajita.webp',
-    badge: 'Best Seller',
+    badgeKey: 'bestSeller',
     category: 'beef',
     featured: true,
   },
   {
     id: 7,
-    name: '1 lb Short Ribs',
-    desc: '1 lb short ribs a la parrilla con arroz 12 oz, cebollas y pimientos asados, chile toreado, ensalada, tortillas, limón y salsas.',
     price: '$22.75',
     img: '/assets/1lb-short-ribs.avif',
-    badge: null,
+    badgeKey: null,
     category: 'beef',
     featured: false,
   },
   {
     id: 8,
-    name: '½ lb Short Ribs',
-    desc: '½ lb short ribs a la parrilla con arroz 8 oz, cebollas y pimientos asados, chile toreado, ensalada, tortillas, limón y salsas.',
     price: '$15.50',
     img: '/assets/half-lb-short-ribs.webp',
-    badge: null,
+    badgeKey: null,
     category: 'beef',
     featured: false,
   },
   {
     id: 9,
-    name: 'Parrillada Para Dos',
-    desc: '½ lb fajita, ½ pollo, arroz, frijoles charros, ensalada, chile toreado, salchicha especial, 8 tortillas y salsas. ¡Para 2 personas!',
     price: '$29.99',
     img: '/assets/parrillada-para-dos.webp',
-    badge: 'Para 2',
+    badgeKey: 'forTwo',
     category: 'parrilladas',
     featured: true,
   },
   {
     id: 10,
-    name: 'Parrillada Familiar',
-    desc: '1 lb fajita, 1 pollo entero, 2 arroces, 2 frijoles charros, 2 ensaladas, 2 chiles toreados, 2 salchichas, 16 tortillas y salsas. ¡Para toda la familia!',
     price: '$59.98',
     img: '/assets/parrillada-familiar.webp',
-    badge: 'Best Value',
+    badgeKey: 'bestValue',
     category: 'parrilladas',
     featured: true,
   },
   {
     id: 11,
-    name: 'Classic Hamburger',
-    desc: '½ lb Angus beef patty con queso americano, pickles, mostaza, mayo, lechuga y tomate. Servida con papas Lays Classic.',
     price: '$10.99',
     img: '/assets/classic-hamburger.webp',
-    badge: null,
+    badgeKey: null,
     category: 'burgers',
     featured: false,
   },
   {
     id: 12,
-    name: 'Monterrey Burger',
-    desc: '½ lb Angus beef con jamón, queso Monterrey Jack, chile toreado, chipotle, cebolla asada, guacamole, lechuga y tomate. Con chips.',
     price: '$12.55',
     img: '/assets/monterrey-burger.webp',
-    badge: 'Signature',
+    badgeKey: 'signature',
     category: 'burgers',
     featured: true,
   },
   {
     id: 13,
-    name: 'Salchiburger',
-    desc: '½ lb Angus beef con jamón, salchicha, queso Monterrey Jack, cebolla asada, guacamole, lechuga y tomate. Servida con chips.',
     price: '$12.95',
     img: '/assets/salchiburger.avif',
-    badge: 'Fan Favorite',
+    badgeKey: 'fanFavorite',
     category: 'burgers',
     featured: false,
   },
   {
     id: 14,
-    name: 'Pastel Tres Leches',
-    desc: 'Clásico pastel de tres leches esponjoso y cremoso, cubierto con crema batida.',
     price: '$5.15',
     img: '/assets/pastel-tres-leches.webp',
-    badge: 'Fan Favorite',
+    badgeKey: 'fanFavorite',
     category: 'desserts',
     featured: true,
   },
   {
     id: 15,
-    name: 'Arroz con Leche',
-    desc: 'Cremoso arroz con leche con canela. Un postre casero y reconfortante.',
     price: '$5.00',
     img: '/assets/arroz-con-leche.webp',
-    badge: null,
+    badgeKey: null,
     category: 'desserts',
     featured: false,
   },
   {
     id: 22,
-    name: 'Chocoflan',
-    desc: 'Irresistible combinación de pastel de chocolate y flan de vainilla. Cremoso, húmedo y lleno de sabor.',
     price: '$5.50',
     img: '/assets/chocoflan.webp',
-    badge: null,
+    badgeKey: null,
     category: 'desserts',
     featured: false,
   },
   {
     id: 23,
-    name: 'Flan de Queso',
-    desc: 'Suave flan de queso crema bañado en caramelo. Textura cremosa y sabor dulce e irresistible.',
     price: '$5.00',
     img: '/assets/flan-de-queso.webp',
-    badge: null,
+    badgeKey: null,
     category: 'desserts',
     featured: false,
   },
   {
     id: 24,
-    name: 'Strawberry Cheesecake',
-    desc: 'Cheesecake clásico con base de galleta, relleno cremoso y cobertura de fresas frescas.',
     price: '$6.00',
     img: '/assets/strawberry-cheesecake.avif',
-    badge: null,
+    badgeKey: null,
     category: 'desserts',
     featured: false,
   },
   {
     id: 16,
-    name: '32 oz Drink',
-    desc: 'Bebida de 32 oz a tu elección — refrescos, agua de limón o aguas frescas.',
     price: '$3.90',
     img: '/assets/jarritos.avif',
-    badge: null,
+    badgeKey: null,
     category: 'drinks',
     featured: false,
   },
   {
     id: 17,
-    name: '16 oz Drink',
-    desc: 'Bebida de 16 oz a tu elección — refrescos, agua de limón o aguas frescas.',
     price: '$2.25',
     img: '/assets/16oz-drink.webp',
-    badge: null,
+    badgeKey: null,
     category: 'drinks',
     featured: false,
   },
   {
     id: 25,
-    name: 'Refresco 12 oz',
-    desc: 'Lata de refresco de 12 oz — Coke, Sprite, Dr Pepper y más. El complemento perfecto para tu plato.',
     price: '$2.00',
     img: '/assets/canned-soda-12oz.avif',
-    badge: null,
+    badgeKey: null,
     category: 'drinks',
     featured: false,
   },
   {
     id: 18,
-    name: 'Papa Norteña',
-    desc: 'Papa al horno cargada con crema, mantequilla, salsa de queso Monterrey Jack y cheddar, tocino, carne asada, galletas saladas y jalapeños.',
     price: '$17.75',
-    img: '/assets/menu-tacos-placeholder.jpg',
-    badge: 'Must Try',
+    img: '/assets/papa-asada.webp',
+    badgeKey: 'mustTry',
     category: 'extras',
     featured: false,
   },
   {
     id: 19,
-    name: 'Frijoles Charros 12 oz',
-    desc: 'Frijoles charros caseros, ricos y caldosos. El acompañamiento perfecto para tu plato.',
     price: '$3.95',
     img: '/assets/charro-beans-12oz.avif',
-    badge: null,
+    badgeKey: null,
     category: 'extras',
     featured: false,
   },
   {
     id: 20,
-    name: 'Frijoles Charros 32 oz',
-    desc: 'Frijoles charros en tamaño familiar — ideal para compartir con toda la mesa.',
     price: '$11.86',
     img: '/assets/charro-beans-32oz.webp',
-    badge: null,
+    badgeKey: null,
     category: 'extras',
     featured: false,
   },
   {
     id: 21,
-    name: 'Salchicha Asada',
-    desc: 'Salchicha especial asada al carbón. El toque extra auténtico que completa cualquier plato.',
     price: '$4.00',
-    img: '/assets/menu-tacos-placeholder.jpg',
-    badge: null,
+    img: '/assets/salchicha-asada.webp',
+    badgeKey: null,
     category: 'extras',
     featured: false,
   },
@@ -270,17 +220,16 @@ const CATEGORIES = [
 ];
 
 const BADGE_STYLES = {
-  'Most Popular': 'bg-primary text-white',
-  'Fan Favorite': 'bg-primary-dark text-white',
-  'Best Value':   DARK_BADGE,
-  'Best Seller':  DARK_BADGE,
-  'Signature':    'bg-coal-800 text-white',
-  'Para 2':       'bg-coal-900 text-white',
-  'Must Try':     'bg-primary text-white',
-  'New':          'bg-coal-900 text-white',
+  mostPopular: 'bg-primary text-white',
+  fanFavorite: 'bg-primary-dark text-white',
+  bestValue: DARK_BADGE,
+  bestSeller: DARK_BADGE,
+  signature: 'bg-coal-800 text-white',
+  forTwo: 'bg-coal-900 text-white',
+  mustTry: 'bg-primary text-white',
 };
 
-function MenuCard({ item, index, officialLabel }) {
+function MenuCard({ item, index, officialLabel, categoryLabel }) {
   const [ref, visible] = useScrollReveal(0.06);
 
   return (
@@ -295,21 +244,22 @@ function MenuCard({ item, index, officialLabel }) {
           alt={item.name}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
           loading="lazy"
+          decoding="async"
           onError={(e) => { e.currentTarget.src = '/assets/menu-chicken-placeholder.jpg'; }}
         />
         <div className="absolute bottom-3 right-3 bg-primary px-3 py-1.5 text-sm font-black text-white shadow-cta">
           {item.price}
         </div>
-        {item.badge && (
-          <div className={`absolute top-3 left-3 px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.16em] shadow ${BADGE_STYLES[item.badge] ?? 'bg-coal-800 text-white'}`}>
-            {item.badge}
+        {item.badgeLabel && (
+          <div className={`absolute top-3 left-3 px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.16em] shadow ${BADGE_STYLES[item.badgeKey] ?? 'bg-coal-800 text-white'}`}>
+            {item.badgeLabel}
           </div>
         )}
       </div>
 
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div>
-          <p className="mb-2 text-[11px] font-black uppercase tracking-[0.24em] text-primary">{item.category}</p>
+          <p className="mb-2 text-[11px] font-black uppercase tracking-[0.24em] text-primary">{categoryLabel}</p>
           <h3 className="font-display text-3xl uppercase leading-[0.9] tracking-[0.03em] text-coal-900">{item.name}</h3>
         </div>
         <p className="line-clamp-2 flex-1 text-sm leading-relaxed text-coal-500">{item.desc}</p>
@@ -327,11 +277,25 @@ export default function FeaturedMenu() {
   const [titleRef, titleVisible] = useScrollReveal();
   const { t } = useLanguage();
 
+  const menuItems = useMemo(
+    () => MENU_ITEMS.map((item) => {
+      const localized = t.menu.items[item.id];
+
+      return {
+        ...item,
+        name: localized.name,
+        desc: localized.desc,
+        badgeLabel: item.badgeKey ? t.menu.badges[item.badgeKey] : null,
+      };
+    }),
+    [t],
+  );
+
   const filtered = useMemo(
     () => active === 'all'
-      ? MENU_ITEMS.filter((i) => i.featured)
-      : MENU_ITEMS.filter((i) => i.category === active),
-    [active],
+      ? menuItems.filter((i) => i.featured)
+      : menuItems.filter((i) => i.category === active),
+    [active, menuItems],
   );
 
   return (
@@ -387,7 +351,13 @@ export default function FeaturedMenu() {
 
         <div className="grid grid-cols-1 gap-6 pb-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((item, idx) => (
-            <MenuCard key={item.id} item={item} index={idx} officialLabel={t.menu.officialShort} />
+            <MenuCard
+              key={item.id}
+              item={item}
+              index={idx}
+              officialLabel={t.menu.officialShort}
+              categoryLabel={t.menu.categories[item.category]}
+            />
           ))}
         </div>
 

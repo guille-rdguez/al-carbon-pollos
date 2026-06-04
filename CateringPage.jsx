@@ -257,7 +257,7 @@ function DatePicker({ id, value, onChange, error }) {
               type="button"
               onClick={() => changeMonth(-1)}
               className="flex h-9 w-9 items-center justify-center border border-white/10 bg-white/[0.06] text-white/70 transition-colors hover:border-primary hover:text-primary"
-              aria-label="Mes anterior"
+              aria-label={t.common.previousMonth}
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -275,7 +275,7 @@ function DatePicker({ id, value, onChange, error }) {
               type="button"
               onClick={() => changeMonth(1)}
               className="flex h-9 w-9 items-center justify-center border border-white/10 bg-white/[0.06] text-white/70 transition-colors hover:border-primary hover:text-primary"
-              aria-label="Mes siguiente"
+              aria-label={t.common.nextMonth}
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -357,6 +357,7 @@ function PackageCard({ item, index }) {
           alt={item.title}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
@@ -377,7 +378,7 @@ function PackageCard({ item, index }) {
 function CateringForm() {
   const [form, setForm] = useState(INITIAL_FORM);
   const [submitted, setSubmitted] = useState(false);
-  const [dateError, setDateError] = useState('');
+  const [dateError, setDateError] = useState(false);
   const { t } = useLanguage();
 
   const estimatedSummary = useMemo(() => {
@@ -411,7 +412,7 @@ function CateringForm() {
   const updateField = (name, value) => {
     setForm((current) => ({ ...current, [name]: value }));
     if (name === 'eventDate') {
-      setDateError('');
+      setDateError(false);
     }
   };
 
@@ -438,7 +439,7 @@ function CateringForm() {
   const submit = (event) => {
     event.preventDefault();
     if (!form.eventDate) {
-      setDateError(t.catering.form.dateError);
+      setDateError(true);
       return;
     }
 
@@ -456,7 +457,7 @@ function CateringForm() {
           <input id="name" name="name" value={form.name} onChange={update} required className={inputClass()} placeholder={t.catering.form.namePlaceholder} />
         </Field>
         <Field id="email" label={t.catering.form.email} required>
-          <input id="email" name="email" type="email" value={form.email} onChange={update} required className={inputClass()} placeholder="tu@email.com" />
+          <input id="email" name="email" type="email" value={form.email} onChange={update} required className={inputClass()} placeholder={t.catering.form.emailPlaceholder} />
         </Field>
       </div>
 
@@ -475,7 +476,7 @@ function CateringForm() {
             id="eventDate"
             value={form.eventDate}
             onChange={(value) => updateField('eventDate', value)}
-            error={dateError}
+            error={dateError ? t.catering.form.dateError : ''}
           />
         </Field>
         <Field id="eventTime" label={t.catering.form.time}>
@@ -572,6 +573,24 @@ export default function CateringPage() {
       description.setAttribute('content', t.catering.meta);
     }
 
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) {
+      canonical.setAttribute('href', 'https://alcarbonsatx.com/catering');
+    }
+
+    const metaUpdates = {
+      'meta[property="og:title"]': t.catering.title,
+      'meta[property="og:description"]': t.catering.meta,
+      'meta[property="og:url"]': 'https://alcarbonsatx.com/catering',
+      'meta[name="twitter:title"]': t.catering.title,
+      'meta[name="twitter:description"]': t.catering.meta,
+    };
+
+    Object.entries(metaUpdates).forEach(([selector, content]) => {
+      const tag = document.querySelector(selector);
+      if (tag) tag.setAttribute('content', content);
+    });
+
     if (window.location.hash) {
       window.setTimeout(() => {
         document.querySelector(window.location.hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -589,8 +608,9 @@ export default function CateringPage() {
           <div className="absolute inset-0">
             <img
               src="/assets/parrillada-familiar.webp"
-              alt="Parrillada familiar Al Carbon para catering"
+              alt={t.catering.heroAlt}
               className="h-full w-full object-cover"
+              fetchPriority="high"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-black/40" />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.2),rgba(0,0,0,0.92))]" />
@@ -638,7 +658,7 @@ export default function CateringPage() {
                   <p className="mt-1 text-xs uppercase tracking-[0.2em] text-white/50">{t.catering.branches}</p>
                 </div>
                 <div>
-                  <p className="font-display text-4xl uppercase text-white">11-9</p>
+                  <p className="font-display text-4xl uppercase text-white">11AM - 9PM</p>
                   <p className="mt-1 text-xs uppercase tracking-[0.2em] text-white/50">{t.catering.daily}</p>
                 </div>
                 <div>
@@ -715,6 +735,7 @@ export default function CateringPage() {
               aria-hidden="true"
               className="h-full w-full object-cover"
               loading="lazy"
+              decoding="async"
             />
             <div className="absolute inset-0 bg-black/80" />
           </div>
