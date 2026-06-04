@@ -780,8 +780,8 @@ export const TRANSLATIONS = {
 
 export function LanguageProvider({ children }) {
   const [language, setLanguageState] = useState(() => {
-    if (typeof window === 'undefined') return 'es';
-    return window.localStorage.getItem('al-carbon-language') || 'es';
+    if (typeof window === 'undefined') return 'en';
+    return window.localStorage.getItem('al-carbon-language') || 'en';
   });
 
   const setLanguage = (nextLanguage) => {
