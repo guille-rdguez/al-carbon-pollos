@@ -80,7 +80,7 @@ export default function HeroSection() {
               <p className="text-xs uppercase tracking-[0.22em] text-white/50">{t.hero.hoursLabel}</p>
             </div>
             <div className="py-4 sm:pl-4">
-              <p className="font-display text-3xl uppercase text-white">Drive</p>
+              <p className="font-display text-3xl uppercase text-white">Drive Thru</p>
               <p className="text-xs uppercase tracking-[0.22em] text-white/50">{t.hero.driveLabel}</p>
             </div>
           </div>
