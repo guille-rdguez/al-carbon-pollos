@@ -33,7 +33,12 @@ export default function CartBar() {
         body: JSON.stringify({
           location: cart.location,
           customer: { name: name.trim(), email: email.trim(), phone: phone.trim() },
-          lines: cart.lines.map(({ id, qty }) => ({ id, qty })),
+          lines: cart.lines.map((line) => ({
+            id: line.id,
+            qty: line.qty,
+            modifiers: (line.modifiers ?? []).map((mod) => mod.id),
+            note: (line.modifiers ?? []).map((mod) => `+ ${mod.name}`).join(', '),
+          })),
         }),
       });
       if (!response.ok) {
@@ -89,21 +94,26 @@ export default function CartBar() {
                 <p className="py-12 text-center text-sm text-coal-500">{t.cart.empty}</p>
               ) : (
                 cart.lines.map((line) => (
-                  <div key={line.id} className="flex items-center gap-4 border-b border-coal-100 py-4">
+                  <div key={line.key} className="flex items-center gap-4 border-b border-coal-100 py-4">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-bold">{line.name}</p>
+                      {(line.modifiers ?? []).length > 0 && (
+                        <p className="mt-0.5 text-xs leading-relaxed text-coal-500">
+                          {line.modifiers.map((mod) => `+ ${mod.name}`).join(' · ')}
+                        </p>
+                      )}
                       <p className="text-xs text-coal-500">{formatCents(line.price)}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => cart.setQty(line.id, line.qty - 1)}
+                        onClick={() => cart.setQty(line.key, line.qty - 1)}
                         className="h-8 w-8 border border-coal-200 text-sm font-black hover:border-primary hover:text-primary"
                       >
                         −
                       </button>
                       <span className="w-6 text-center text-sm font-bold">{line.qty}</span>
                       <button
-                        onClick={() => cart.setQty(line.id, line.qty + 1)}
+                        onClick={() => cart.setQty(line.key, line.qty + 1)}
                         className="h-8 w-8 border border-coal-200 text-sm font-black hover:border-primary hover:text-primary"
                       >
                         +

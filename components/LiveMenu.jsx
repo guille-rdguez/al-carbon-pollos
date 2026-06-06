@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useLanguage } from '../hooks/useLanguage';
 import { useCloverMenu } from '../hooks/useCloverMenu';
-import { useCart } from '../hooks/useCart';
+import { useCart, lineKey } from '../hooks/useCart';
 import { revealStyle } from '../utils/revealStyle';
 import { matchCatalog, normalizeName } from '../utils/cloverCatalog';
 import { LOCATIONS } from '../constants/locations';
+import ModifierModal from './ModifierModal';
 
 // Branded tile for items without a photo (Clover's own page does the same).
 const LOGO_IMG = '/assets/logo.png';
@@ -33,12 +34,13 @@ function titleCase(name) {
   return name.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
 }
 
-function LiveMenuCard({ item, index, categoryLabel, cloverUrl }) {
+function LiveMenuCard({ item, index, categoryLabel, onCustomize }) {
   const [ref, visible] = useScrollReveal(0.06);
   const { t } = useLanguage();
   const cart = useCart();
   const qty = cart.qtyOf(item.id);
   const hasPhoto = Boolean(item.img);
+  const hasOptions = (item.modifierGroups?.length ?? 0) > 0;
 
   return (
     <div
@@ -74,19 +76,24 @@ function LiveMenuCard({ item, index, categoryLabel, cloverUrl }) {
           <p className="line-clamp-2 flex-1 text-sm leading-relaxed text-coal-500">{item.displayDesc}</p>
         )}
         <div className="mt-3 flex items-center justify-between border-t border-coal-100 pt-4">
-          {item.requiresModifiers ? (
-            <a
-              href={cloverUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm font-bold text-primary hover:underline"
-            >
-              {t.cart.options} →
-            </a>
+          {hasOptions ? (
+            <div className="flex items-center gap-2">
+              {qty > 0 && (
+                <span className="flex h-7 min-w-7 items-center justify-center bg-coal-900 px-2 text-xs font-black text-white">
+                  {qty}
+                </span>
+              )}
+              <button
+                onClick={() => onCustomize(item)}
+                className="bg-primary px-5 py-2.5 text-xs font-black uppercase tracking-[0.16em] text-white shadow-cta transition-colors hover:bg-primary-dark"
+              >
+                {t.cart.customize}
+              </button>
+            </div>
           ) : qty > 0 ? (
             <div className="flex items-center gap-2">
               <button
-                onClick={() => cart.setQty(item.id, qty - 1)}
+                onClick={() => cart.setQty(lineKey(item.id, []), qty - 1)}
                 className="h-9 w-9 border border-coal-200 text-sm font-black hover:border-primary hover:text-primary"
                 aria-label="−"
               >
@@ -94,7 +101,7 @@ function LiveMenuCard({ item, index, categoryLabel, cloverUrl }) {
               </button>
               <span className="w-6 text-center text-sm font-bold">{qty}</span>
               <button
-                onClick={() => cart.setQty(item.id, qty + 1)}
+                onClick={() => cart.setQty(lineKey(item.id, []), qty + 1)}
                 className="h-9 w-9 border border-coal-200 text-sm font-black hover:border-primary hover:text-primary"
                 aria-label="+"
               >
@@ -134,6 +141,7 @@ export default function LiveMenu() {
   const { t } = useLanguage();
   const cart = useCart();
   const [titleRef, titleVisible] = useScrollReveal();
+  const [modalItem, setModalItem] = useState(null);
   // Priority: ?location= deep link (e.g. from a sucursal card) → persisted
   // cart location (so returning users keep their saved lines) → first location.
   const [locationSlug, setLocationSlug] = useState(() => {
@@ -282,7 +290,7 @@ export default function LiveMenu() {
                   item={item}
                   index={idx}
                   categoryLabel={active.label}
-                  cloverUrl={location?.cloverUrl}
+                  onCustomize={setModalItem}
                 />
               ))}
             </div>
@@ -295,6 +303,14 @@ export default function LiveMenu() {
           </p>
         </div>
       </div>
+
+      {modalItem && (
+        <ModifierModal
+          item={modalItem}
+          onClose={() => setModalItem(null)}
+          onAdd={(item, modifiers) => cart.add(item, modifiers)}
+        />
+      )}
     </section>
   );
 }

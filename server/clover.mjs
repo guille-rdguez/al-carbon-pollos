@@ -43,24 +43,76 @@ function formatPrice(cents) {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
+// Pages through a Clover collection endpoint — fixed limits silently truncate
+// large catalogs (e.g. >200 modifier groups would drop required combo choices).
+async function fetchAll(url, headers, limit = 500) {
+  const all = [];
+  for (let offset = 0; ; offset += limit) {
+    const sep = url.includes('?') ? '&' : '?';
+    const pageUrl = `${url}${sep}limit=${limit}&offset=${offset}`;
+    let res = await fetch(pageUrl, { headers });
+    if (res.status === 429) {
+      // Clover rate limit — back off once and retry the page.
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+      res = await fetch(pageUrl, { headers });
+    }
+    if (!res.ok) {
+      throw new Error(`Clover API error ${res.status} for ${url.split('?')[0]}`);
+    }
+    const batch = (await res.json()).elements ?? [];
+    all.push(...batch);
+    if (batch.length < limit) return all;
+  }
+}
+
+// Per-instance menu cache: /api/menu hits and per-checkout validation share
+// it, keeping Clover API usage well under its rate limits.
+const MENU_CACHE = new Map(); // merchantId -> { menu, expires }
+const MENU_TTL_MS = 60_000;
+
 export async function fetchMenu(merchant, env) {
   const token = env[merchant.tokenEnv];
   if (!token) throw new Error(`Missing ${merchant.tokenEnv} environment variable`);
 
-  const headers = { Authorization: `Bearer ${token}` };
   const { merchantId } = merchant;
+  const cached = MENU_CACHE.get(merchantId);
+  if (cached && cached.expires > Date.now()) return cached.menu;
 
-  const [categoriesRes, itemsRes] = await Promise.all([
-    fetch(`${CLOVER_BASE}/merchants/${merchantId}/categories?limit=100`, { headers }),
-    fetch(`${CLOVER_BASE}/merchants/${merchantId}/items?limit=1000&expand=categories,modifierGroups`, { headers }),
+  const headers = { Authorization: `Bearer ${token}` };
+
+  const [categories, items, rawGroups] = await Promise.all([
+    fetchAll(`${CLOVER_BASE}/merchants/${merchantId}/categories`, headers),
+    fetchAll(`${CLOVER_BASE}/merchants/${merchantId}/items?expand=categories,modifierGroups`, headers),
+    fetchAll(`${CLOVER_BASE}/merchants/${merchantId}/modifier_groups?expand=modifiers`, headers),
   ]);
 
-  if (!categoriesRes.ok || !itemsRes.ok) {
-    throw new Error(`Clover API error (categories ${categoriesRes.status} / items ${itemsRes.status})`);
+  // Resolve modifier groups once per merchant; items reference them by id.
+  const groupsById = new Map();
+  for (const group of rawGroups) {
+    if (group.deleted) continue;
+    const modifiers = (group.modifiers?.elements ?? [])
+      .filter((mod) => !mod.deleted && mod.available !== false && typeof mod.price === 'number' && Number.isFinite(mod.price))
+      .map((mod) => ({
+        id: mod.id,
+        name: mod.name,
+        price: mod.price,
+        priceFormatted: formatPrice(mod.price),
+      }));
+    if (modifiers.length === 0) continue;
+    const maxAllowed = group.maxAllowed ?? 0; // 0 = unlimited
+    // Bad POS data with minRequired > maxAllowed would deadlock the picker UI.
+    const minRequired = maxAllowed > 0
+      ? Math.min(group.minRequired ?? 0, maxAllowed)
+      : (group.minRequired ?? 0);
+    groupsById.set(group.id, {
+      id: group.id,
+      name: group.name,
+      minRequired,
+      maxAllowed,
+      sortOrder: group.sortOrder ?? 0,
+      modifiers,
+    });
   }
-
-  const categories = (await categoriesRes.json()).elements ?? [];
-  const items = (await itemsRes.json()).elements ?? [];
 
   const buckets = new Map();
   const parentOf = new Map();
@@ -80,7 +132,10 @@ export async function fetchMenu(merchant, env) {
     // Items without a usable price would render as $NaN and poison cart math.
     if (typeof item.price !== 'number' || !Number.isFinite(item.price) || item.price < 0) continue;
 
-    const modifierGroups = item.modifierGroups?.elements ?? [];
+    const itemGroups = (item.modifierGroups?.elements ?? [])
+      .map((group) => groupsById.get(group.id))
+      .filter(Boolean)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
 
     const normalized = {
       id: item.id,
@@ -88,9 +143,8 @@ export async function fetchMenu(merchant, env) {
       description: item.description || '',
       price: item.price,
       priceFormatted: formatPrice(item.price),
-      // Combos with a required choice can't be added straight to the cart yet —
-      // the UI sends those to Clover's page where modifiers can be picked.
-      requiresModifiers: modifierGroups.some((group) => (group.minRequired ?? 0) > 0),
+      modifierGroups: itemGroups,
+      requiresModifiers: itemGroups.some((group) => group.minRequired > 0),
     };
 
     const catIds = (item.categories?.elements ?? [])
@@ -114,12 +168,14 @@ export async function fetchMenu(merchant, env) {
     cat.items.sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  return {
+  const menu = {
     merchantId,
     location: merchant.name,
     categories: menuCategories,
     fetchedAt: new Date().toISOString(),
   };
+  MENU_CACHE.set(merchantId, { menu, expires: Date.now() + MENU_TTL_MS });
+  return menu;
 }
 
 const CHECKOUT_URL = 'https://api.clover.com/invoicingcheckoutservice/v1/checkouts';
@@ -135,12 +191,60 @@ export async function createCheckout(merchant, env, { customer, lines }) {
     throw Object.assign(new Error('Invalid cart'), { status: 400 });
   }
 
-  const lineItems = lines.map(({ id, qty }) => {
+  // Resolve the live menu once and validate every line against it — the
+  // client can't attach modifiers from other items, exceed a group's cap,
+  // or skip a required choice. Prices stay authoritative on Clover's side.
+  const menu = await fetchMenu(merchant, env);
+  const itemsById = new Map();
+  for (const category of menu.categories) {
+    for (const item of category.items) {
+      itemsById.set(item.id, item);
+    }
+  }
+
+  const invalidLine = () => Object.assign(new Error('Invalid cart line'), { status: 400 });
+
+  const lineItems = lines.map(({ id, qty, modifiers, note }) => {
     const unitQty = Math.floor(Number(qty));
     if (!ITEM_ID_PATTERN.test(id ?? '') || !Number.isFinite(unitQty) || unitQty < 1 || unitQty > 50) {
-      throw Object.assign(new Error('Invalid cart line'), { status: 400 });
+      throw invalidLine();
     }
-    return { itemRefUuid: id, unitQty };
+    const item = itemsById.get(id);
+    if (!item) throw invalidLine();
+
+    const submitted = Array.isArray(modifiers) ? modifiers : [];
+    if (submitted.length > 30) throw invalidLine();
+
+    const groupOfModifier = new Map();
+    for (const group of item.modifierGroups) {
+      for (const mod of group.modifiers) {
+        groupOfModifier.set(mod.id, group.id);
+      }
+    }
+
+    const countByGroup = new Map();
+    for (const modifierId of submitted) {
+      const groupId = groupOfModifier.get(modifierId);
+      if (!groupId) throw invalidLine(); // not a modifier of this item
+      countByGroup.set(groupId, (countByGroup.get(groupId) ?? 0) + 1);
+    }
+    for (const group of item.modifierGroups) {
+      const count = countByGroup.get(group.id) ?? 0;
+      if (count < group.minRequired) throw invalidLine();
+      if (group.maxAllowed > 0 && count > group.maxAllowed) throw invalidLine();
+    }
+
+    const line = { itemRefUuid: id, unitQty };
+    if (submitted.length > 0) {
+      line.modifications = submitted.map((modifierId) => ({ modifierRefUuid: modifierId }));
+    }
+
+    // Human-readable backup so the kitchen sees the choices on the order even
+    // if a POS view doesn't surface structured modifications.
+    const cleanNote = String(note ?? '').replace(/\s+/g, ' ').trim().slice(0, 255);
+    if (cleanNote) line.note = cleanNote;
+
+    return line;
   });
 
   const email = String(customer?.email ?? '').trim();
