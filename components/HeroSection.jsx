@@ -48,8 +48,6 @@ export default function HeroSection() {
           <div className="flex flex-col sm:flex-row gap-3 animate-fade-in delay-300">
             <a
               href={PICKUP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 bg-primary px-7 py-4 text-lg font-bold text-white shadow-cta transition-all duration-200 hover:scale-[1.02] hover:bg-primary-dark hover:shadow-cta-hover active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">

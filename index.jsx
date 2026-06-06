@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './styles.css';
 import HomePage from './HomePage';
 import CateringPage from './CateringPage';
+import MenuPage from './MenuPage';
 import { LanguageProvider } from './hooks/useLanguage';
 
 function resolvePage() {
@@ -10,6 +11,10 @@ function resolvePage() {
 
   if (path === '/catering') {
     return <CateringPage />;
+  }
+
+  if (path === '/menu') {
+    return <MenuPage />;
   }
 
   return <HomePage />;

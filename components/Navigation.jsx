@@ -101,8 +101,6 @@ export default function Navigation() {
           {/* Desktop CTA */}
           <a
             href={PICKUP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-sm font-bold shadow-cta hover:bg-primary-dark hover:shadow-cta-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-black"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -160,8 +158,6 @@ export default function Navigation() {
             <li className="pt-2">
               <a
                 href={PICKUP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
                 onClick={close}
                 className="flex items-center justify-center gap-2 py-4 bg-primary text-white font-bold text-base shadow-cta hover:bg-primary-dark transition-colors"
               >

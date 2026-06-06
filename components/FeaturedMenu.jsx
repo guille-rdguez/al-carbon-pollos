@@ -340,12 +340,12 @@ export default function FeaturedMenu() {
             {active === 'all' ? t.menu.featured : `${filtered.length} ${t.menu.dishes}`}
           </p>
           {active === 'all' && (
-            <button
-              onClick={() => setActive('chicken')}
+            <a
+              href="/menu"
               className="text-sm font-bold text-primary hover:underline"
             >
               {t.menu.viewFull} →
-            </button>
+            </a>
           )}
         </div>
 
