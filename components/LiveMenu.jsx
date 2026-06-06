@@ -4,30 +4,17 @@ import { useLanguage } from '../hooks/useLanguage';
 import { useCloverMenu } from '../hooks/useCloverMenu';
 import { useCart, lineKey } from '../hooks/useCart';
 import { revealStyle } from '../utils/revealStyle';
-import { matchCatalog, normalizeName } from '../utils/cloverCatalog';
+import { buildDisplayCategories } from '../utils/menuCategories';
 import { LOCATIONS } from '../constants/locations';
 import ModifierModal from './ModifierModal';
 
 // Branded tile for items without a photo (Clover's own page does the same).
 const LOGO_IMG = '/assets/logo.png';
 
-// Generic photo for unmatched items in categories where one image fits all.
+// Generic photo for unmatched items in categories where one image fits all
+// (unmatched drinks are almost always canned sodas; sized drinks are matched).
 const CATEGORY_FALLBACK_IMG = {
-  'canned sodas': '/assets/canned-soda-12oz.avif',
-  drinks: '/assets/16oz-drink.webp',
-};
-
-// Clover category name → existing translation key in t.menu.categories
-const CATEGORY_KEYS = {
-  chicken: 'chicken',
-  beef: 'beef',
-  parrilladas: 'parrilladas',
-  burgers: 'burgers',
-  desserts: 'desserts',
-  drinks: 'drinks',
-  extras: 'extras',
-  'papa nortena': 'papaNortena',
-  'canned sodas': 'cannedSodas',
+  drinks: '/assets/canned-soda-12oz.avif',
 };
 
 function titleCase(name) {
@@ -164,27 +151,24 @@ export default function LiveMenu() {
 
   const categories = useMemo(() => {
     if (!data) return [];
-    return data.categories.map((cat) => {
-      const catKey = normalizeName(cat.name);
-      const key = CATEGORY_KEYS[catKey];
-      return {
-        ...cat,
-        label: key ? t.menu.categories[key] : titleCase(cat.name),
-        items: cat.items.map((item) => {
-          const match = matchCatalog(item.name);
-          const localized = match && !match.partial ? t.menu.items[match.localId] : null;
-          return {
-            ...item,
-            displayName: localized?.name ?? item.name,
-            displayDesc: localized?.desc ?? item.description,
-            img: match?.img ?? CATEGORY_FALLBACK_IMG[catKey] ?? null,
-          };
-        }),
-      };
-    });
+    // Re-bucket into the site's curated categories (the POS tags loosely,
+    // e.g. Charro Beans under CHICKEN); labels come from the i18n dictionary.
+    return buildDisplayCategories(data.categories).map((bucket) => ({
+      ...bucket,
+      label: t.menu.categories[bucket.key] ?? titleCase(bucket.name),
+      items: bucket.items.map((item) => {
+        const localized = item.catalog && !item.catalog.partial ? t.menu.items[item.catalog.localId] : null;
+        return {
+          ...item,
+          displayName: localized?.name ?? item.name,
+          displayDesc: localized?.desc ?? item.description,
+          img: item.catalog?.img ?? CATEGORY_FALLBACK_IMG[bucket.key] ?? null,
+        };
+      }),
+    }));
   }, [data, t]);
 
-  const active = categories.find((cat) => cat.id === activeCategory) ?? categories[0] ?? null;
+  const active = categories.find((cat) => cat.key === activeCategory) ?? categories[0] ?? null;
 
   // Once the live menu arrives, refresh saved cart lines (prices/names) against it.
   useEffect(() => {
@@ -244,10 +228,10 @@ export default function LiveMenu() {
             >
               {categories.map((cat) => (
                 <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
+                  key={cat.key}
+                  onClick={() => setActiveCategory(cat.key)}
                   className={`flex-shrink-0 snap-start px-4 py-2.5 text-sm font-bold transition-all duration-200 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${
-                    active?.id === cat.id
+                    active?.key === cat.key
                       ? 'bg-primary text-white shadow-cta'
                       : 'border border-coal-200 bg-white text-coal-600 hover:border-primary hover:text-primary'
                   }`}
