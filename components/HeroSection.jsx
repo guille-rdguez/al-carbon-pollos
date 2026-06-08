@@ -1,8 +1,10 @@
-import { PICKUP_URL, DELIVERY_URL } from '../constants/urls';
+import { PICKUP_URL } from '../constants/urls';
 import { useLanguage } from '../hooks/useLanguage';
+import { useDelivery } from '../hooks/useDelivery';
 
 export default function HeroSection() {
   const { t } = useLanguage();
+  const { openDelivery } = useDelivery();
 
   return (
     <section
@@ -55,17 +57,16 @@ export default function HeroSection() {
               </svg>
               {t.common.pickup}
             </a>
-            <a
-              href={DELIVERY_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={openDelivery}
               className="inline-flex items-center justify-center gap-2 border border-white/40 bg-white/10 px-7 py-4 text-lg font-bold text-white backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] hover:border-white hover:bg-white hover:text-black active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
               {t.common.delivery}
-            </a>
+            </button>
           </div>
 
           <div className="mt-9 grid max-w-2xl grid-cols-1 border-y border-white/10 text-white/75 animate-fade-in delay-400 sm:grid-cols-3">

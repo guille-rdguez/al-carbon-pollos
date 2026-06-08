@@ -5,6 +5,7 @@ import HomePage from './HomePage';
 import CateringPage from './CateringPage';
 import MenuPage from './MenuPage';
 import { LanguageProvider } from './hooks/useLanguage';
+import { DeliveryProvider } from './hooks/useDelivery';
 
 function resolvePage() {
   const path = window.location.pathname.replace(/\/$/, '') || '/';
@@ -24,6 +25,8 @@ const container = document.getElementById('root');
 const root = createRoot(container);
 root.render(
   <LanguageProvider>
-    {resolvePage()}
+    <DeliveryProvider>
+      {resolvePage()}
+    </DeliveryProvider>
   </LanguageProvider>,
 );
