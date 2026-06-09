@@ -50,6 +50,7 @@ export const LOCATIONS = [
     delivery: {
       doorDash: 'https://www.doordash.com/store/al-carbon-pollos-asados-san-antonio-24538471/',
       uberEats: 'https://www.ubereats.com/store/al-carbon-pollos-asados-4/SOh5XLFnVxGJ9q8KFF4HDQ',
+      grubhub: 'https://www.grubhub.com/restaurant/al-carbon-pollos-asados-10555-culebra-rd-san-antonio/13237360',
     },
     orderUrl: '/menu?location=alamo-ranch',
     cloverUrl: 'https://www.clover.com/online-ordering/al-carbon-4-san-antonio',
@@ -87,12 +88,10 @@ export const LOCATIONS = [
     lng: -98.5365,
     tagKeys: ['callIn', 'pickup'],
     noteKey: 'culebra2',
-    // 547 has its own Grubhub. DoorDash/Uber Eats are shared with Culebra 1
-    // (403) — the two storefronts are right next to each other, so the same
-    // listings cover both addresses.
+    // 547 only lists on Grubhub (per the branch's delivery sheet). DoorDash /
+    // Uber Eats orders for this address are handled by the Culebra 1 (403)
+    // storefront next door.
     delivery: {
-      doorDash: 'https://www.doordash.com/store/al-carbon-pollos-asados-san-antonio-27805644/',
-      uberEats: 'https://www.ubereats.com/store/al-carbon-pollos-asados-1/yXw0EJQxToqI9N6qfFPe-g',
       grubhub: 'https://www.grubhub.com/restaurant/al-carbon-pollos-asados-547-culebra-rd-san-antonio/12671432',
     },
     orderUrl: '/menu?location=culebra-2',
@@ -132,9 +131,10 @@ export const LOCATIONS = [
     lng: -98.6344,
     tagKeys: ['uberEats', 'doorDash', 'pickup'],
     noteKey: 'marbach',
-    // Newest branch — only DoorDash is live so far (not yet on Uber Eats/Grubhub).
     delivery: {
       doorDash: 'https://www.doordash.com/store/al-carbon-pollos-asados-san-antonio-37955917/',
+      uberEats: 'https://www.ubereats.com/store/al-carbon-pollos-asados-5/TweeIMBoWR-bEZWEshPqjA',
+      grubhub: 'https://www.grubhub.com/restaurant/al-carbon-5-marbach-rd-7310-marbach-rd-san-antonio/14638704',
     },
     orderUrl: '/menu?location=marbach',
     cloverUrl: 'https://www.clover.com/online-ordering/al-carbon-5-san-antonio',
