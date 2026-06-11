@@ -43,8 +43,6 @@ function formatPrice(cents) {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
-const TAX_RATE_SCALE = 10_000_000; // Clover stores 8.25% as 825000.
-
 function normalizeTaxRate(rate) {
   if (!rate || rate.deletedTime) return null;
 
@@ -68,12 +66,6 @@ function normalizeTaxRates(rates) {
 
 function modifierSum(modifiers) {
   return (modifiers ?? []).reduce((sum, mod) => sum + mod.price, 0);
-}
-
-function taxAmountForLine(lineSubtotal, qty, taxRate) {
-  if (taxRate.taxAmount) return taxRate.taxAmount * qty;
-  if (taxRate.rate) return Math.round((lineSubtotal * taxRate.rate) / TAX_RATE_SCALE);
-  return 0;
 }
 
 // Pages through a Clover collection endpoint — fixed limits silently truncate
@@ -245,9 +237,6 @@ export async function createCheckout(merchant, env, { customer, lines }) {
 
   const invalidLine = () => Object.assign(new Error('Invalid cart line'), { status: 400 });
 
-  let subtotal = 0;
-  let taxTotal = 0;
-
   const lineItems = lines.map(({ id, qty, modifiers, note }) => {
     const unitQty = Math.floor(Number(qty));
     if (!ITEM_ID_PATTERN.test(id ?? '') || !Number.isFinite(unitQty) || unitQty < 1 || unitQty > 50) {
@@ -282,28 +271,19 @@ export async function createCheckout(merchant, env, { customer, lines }) {
 
     const chosenModifiers = submitted.map((modifierId) => modifiersById.get(modifierId));
     const unitPrice = item.price + modifierSum(chosenModifiers);
-    const lineSubtotal = unitPrice * unitQty;
-    subtotal += lineSubtotal;
 
     const taxRates = (item.taxRates ?? [])
-      .map((rate) => {
-        const taxAmount = taxAmountForLine(lineSubtotal, unitQty, rate);
-        taxTotal += taxAmount;
-        return {
-          id: rate.id,
-          name: rate.name,
-          rate: rate.rate,
-          taxAmount,
-        };
-      })
-      .filter((rate) => rate.taxAmount > 0);
+      .filter((rate) => typeof rate.rate === 'number' && Number.isFinite(rate.rate) && rate.rate > 0)
+      .map((rate) => ({
+        name: rate.name,
+        rate: rate.rate,
+      }));
 
     // Hosted Checkout line items don't expose a first-class modifiers field,
     // so keep selected options visible in the order note.
     const cleanNote = String(note ?? '').replace(/\s+/g, ' ').trim().slice(0, 255);
 
     const line = {
-      itemRefUuid: id,
       name: item.name,
       price: unitPrice,
       unitQty,
@@ -342,8 +322,6 @@ export async function createCheckout(merchant, env, { customer, lines }) {
       },
       shoppingCart: {
         lineItems,
-        subtotal,
-        total: subtotal + taxTotal,
       },
     }),
   });
