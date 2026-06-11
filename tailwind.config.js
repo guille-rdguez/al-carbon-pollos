@@ -4,6 +4,7 @@ module.exports = {
     "./index.html",
     "./HomePage.jsx",
     "./CateringPage.jsx",
+    "./MenuPage.jsx",
     "./index.jsx",
     "./components/**/*.jsx",
     "./hooks/**/*.js",

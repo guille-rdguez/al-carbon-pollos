@@ -1,10 +1,8 @@
 {
-
-  "name": "al-carbon-landing",
-  "version": "1.0.0",
+  "name": "demo-workspace",
   "private": true,
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview"
   },

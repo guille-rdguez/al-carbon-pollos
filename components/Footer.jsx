@@ -1,7 +1,8 @@
 import { NAV_LINKS } from '../constants/nav';
 import { CONTACT_EMAIL, EVERYDAY_HOURS, LOCATIONS } from '../constants/locations';
-import { PICKUP_URL, DELIVERY_URL } from '../constants/urls';
+import { PICKUP_URL } from '../constants/urls';
 import { interpolate, useLanguage } from '../hooks/useLanguage';
+import { useDelivery } from '../hooks/useDelivery';
 
 const SOCIAL = [
   {
@@ -26,6 +27,7 @@ const SOCIAL = [
 
 export default function Footer() {
   const { t } = useLanguage();
+  const { openDelivery } = useDelivery();
 
   return (
     <footer id="contact" className="bg-black text-white">
@@ -36,12 +38,12 @@ export default function Footer() {
             <p className="text-white/80 text-sm mt-0.5">{interpolate(t.footer.ctaCopy, { hours: EVERYDAY_HOURS })}</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
-            <a href={PICKUP_URL} target="_blank" rel="noopener noreferrer" className="bg-white px-6 py-3 text-sm font-bold text-primary shadow-md transition-colors hover:bg-coal-50">
+            <a href={PICKUP_URL} className="bg-white px-6 py-3 text-sm font-bold text-primary shadow-md transition-colors hover:bg-coal-50">
               {t.common.pickup}
             </a>
-            <a href={DELIVERY_URL} target="_blank" rel="noopener noreferrer" className="border border-white/40 bg-black/20 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-white/20">
+            <button type="button" onClick={openDelivery} className="border border-white/40 bg-black/20 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-white/20">
               {t.common.delivery}
-            </a>
+            </button>
           </div>
         </div>
       </div>
