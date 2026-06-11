@@ -43,6 +43,39 @@ function formatPrice(cents) {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
+const TAX_RATE_SCALE = 10_000_000; // Clover stores 8.25% as 825000.
+
+function normalizeTaxRate(rate) {
+  if (!rate || rate.deletedTime) return null;
+
+  const normalized = { name: rate.name };
+  if (rate.id) normalized.id = rate.id;
+  if (typeof rate.rate === 'number' && Number.isFinite(rate.rate) && rate.rate > 0) {
+    normalized.rate = rate.rate;
+  }
+  if (typeof rate.taxAmount === 'number' && Number.isFinite(rate.taxAmount) && rate.taxAmount > 0) {
+    normalized.taxAmount = rate.taxAmount;
+  }
+
+  return normalized.rate || normalized.taxAmount ? normalized : null;
+}
+
+function normalizeTaxRates(rates) {
+  return (rates?.elements ?? rates ?? [])
+    .map(normalizeTaxRate)
+    .filter(Boolean);
+}
+
+function modifierSum(modifiers) {
+  return (modifiers ?? []).reduce((sum, mod) => sum + mod.price, 0);
+}
+
+function taxAmountForLine(lineSubtotal, qty, taxRate) {
+  if (taxRate.taxAmount) return taxRate.taxAmount * qty;
+  if (taxRate.rate) return Math.round((lineSubtotal * taxRate.rate) / TAX_RATE_SCALE);
+  return 0;
+}
+
 // Pages through a Clover collection endpoint — fixed limits silently truncate
 // large catalogs (e.g. >200 modifier groups would drop required combo choices).
 async function fetchAll(url, headers, limit = 500) {
@@ -80,11 +113,13 @@ export async function fetchMenu(merchant, env) {
 
   const headers = { Authorization: `Bearer ${token}` };
 
-  const [categories, items, rawGroups] = await Promise.all([
+  const [categories, items, rawGroups, rawTaxRates] = await Promise.all([
     fetchAll(`${CLOVER_BASE}/merchants/${merchantId}/categories`, headers),
-    fetchAll(`${CLOVER_BASE}/merchants/${merchantId}/items?expand=categories,modifierGroups`, headers),
+    fetchAll(`${CLOVER_BASE}/merchants/${merchantId}/items?expand=categories,modifierGroups,taxRates`, headers),
     fetchAll(`${CLOVER_BASE}/merchants/${merchantId}/modifier_groups?expand=modifiers`, headers),
+    fetchAll(`${CLOVER_BASE}/merchants/${merchantId}/tax_rates`, headers),
   ]);
+  const defaultTaxRates = normalizeTaxRates(rawTaxRates.filter((rate) => rate.isDefault));
 
   // Resolve modifier groups once per merchant; items reference them by id.
   const groupsById = new Map();
@@ -137,6 +172,11 @@ export async function fetchMenu(merchant, env) {
       .filter(Boolean)
       .sort((a, b) => a.sortOrder - b.sortOrder);
 
+    const itemTaxRates = normalizeTaxRates(item.taxRates);
+    const taxRates = itemTaxRates.length > 0
+      ? itemTaxRates
+      : (item.defaultTaxRates !== false ? defaultTaxRates : []);
+
     const normalized = {
       id: item.id,
       name: item.onlineName || item.name,
@@ -145,6 +185,7 @@ export async function fetchMenu(merchant, env) {
       priceFormatted: formatPrice(item.price),
       modifierGroups: itemGroups,
       requiresModifiers: itemGroups.some((group) => group.minRequired > 0),
+      taxRates,
     };
 
     const catIds = (item.categories?.elements ?? [])
@@ -181,8 +222,8 @@ export async function fetchMenu(merchant, env) {
 const CHECKOUT_URL = 'https://api.clover.com/invoicingcheckoutservice/v1/checkouts';
 const ITEM_ID_PATTERN = /^[A-Z0-9]{13}$/;
 
-// Creates a Clover Hosted Checkout session. Clover resolves prices/taxes from
-// the item IDs server-side, so a tampered client can't change what gets charged.
+// Creates a Clover Hosted Checkout session. Prices, modifiers, and taxes are
+// resolved server-side from the live Clover catalog before checkout is made.
 export async function createCheckout(merchant, env, { customer, lines }) {
   const token = env[merchant.tokenEnv];
   if (!token) throw new Error(`Missing ${merchant.tokenEnv} environment variable`);
@@ -204,6 +245,9 @@ export async function createCheckout(merchant, env, { customer, lines }) {
 
   const invalidLine = () => Object.assign(new Error('Invalid cart line'), { status: 400 });
 
+  let subtotal = 0;
+  let taxTotal = 0;
+
   const lineItems = lines.map(({ id, qty, modifiers, note }) => {
     const unitQty = Math.floor(Number(qty));
     if (!ITEM_ID_PATTERN.test(id ?? '') || !Number.isFinite(unitQty) || unitQty < 1 || unitQty > 50) {
@@ -216,9 +260,11 @@ export async function createCheckout(merchant, env, { customer, lines }) {
     if (submitted.length > 30) throw invalidLine();
 
     const groupOfModifier = new Map();
+    const modifiersById = new Map();
     for (const group of item.modifierGroups) {
       for (const mod of group.modifiers) {
         groupOfModifier.set(mod.id, group.id);
+        modifiersById.set(mod.id, mod);
       }
     }
 
@@ -234,14 +280,35 @@ export async function createCheckout(merchant, env, { customer, lines }) {
       if (group.maxAllowed > 0 && count > group.maxAllowed) throw invalidLine();
     }
 
-    const line = { itemRefUuid: id, unitQty };
-    if (submitted.length > 0) {
-      line.modifications = submitted.map((modifierId) => ({ modifierRefUuid: modifierId }));
-    }
+    const chosenModifiers = submitted.map((modifierId) => modifiersById.get(modifierId));
+    const unitPrice = item.price + modifierSum(chosenModifiers);
+    const lineSubtotal = unitPrice * unitQty;
+    subtotal += lineSubtotal;
 
-    // Human-readable backup so the kitchen sees the choices on the order even
-    // if a POS view doesn't surface structured modifications.
+    const taxRates = (item.taxRates ?? [])
+      .map((rate) => {
+        const taxAmount = taxAmountForLine(lineSubtotal, unitQty, rate);
+        taxTotal += taxAmount;
+        return {
+          id: rate.id,
+          name: rate.name,
+          rate: rate.rate,
+          taxAmount,
+        };
+      })
+      .filter((rate) => rate.taxAmount > 0);
+
+    // Hosted Checkout line items don't expose a first-class modifiers field,
+    // so keep selected options visible in the order note.
     const cleanNote = String(note ?? '').replace(/\s+/g, ' ').trim().slice(0, 255);
+
+    const line = {
+      itemRefUuid: id,
+      name: item.name,
+      price: unitPrice,
+      unitQty,
+    };
+    if (taxRates.length > 0) line.taxRates = taxRates;
     if (cleanNote) line.note = cleanNote;
 
     return line;
@@ -273,7 +340,11 @@ export async function createCheckout(merchant, env, { customer, lines }) {
         lastName: rest.join(' ') || firstName,
         phoneNumber: String(customer?.phone ?? '').trim() || undefined,
       },
-      shoppingCart: { lineItems },
+      shoppingCart: {
+        lineItems,
+        subtotal,
+        total: subtotal + taxTotal,
+      },
     }),
   });
 
