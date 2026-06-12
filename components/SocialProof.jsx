@@ -283,7 +283,9 @@ function LocationCard({ location, index, active, onSelect, labels }) {
 
         <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
           <a
-            href={location.orderUrl}
+            href={location.cloverUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex h-8 items-center justify-center bg-primary px-3 text-[11px] font-black text-white shadow-cta transition-all duration-200 hover:bg-primary-dark hover:shadow-cta-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-black"
           >
             {labels.orderNow}

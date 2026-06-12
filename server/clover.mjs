@@ -237,7 +237,22 @@ export async function createCheckout(merchant, env, { customer, lines }) {
 
   const invalidLine = () => Object.assign(new Error('Invalid cart line'), { status: 400 });
 
-  const lineItems = lines.map(({ id, qty, modifiers, note }) => {
+  // Build the cart as itemized lines and fold tax into explicit line items.
+  //
+  // Hosted Checkout is NOT linked to Clover inventory, which causes two issues:
+  //  (a) it rounds per-line taxRates independently, summing a cent short of the
+  //      materialized order's aggregate tax — the "$0.01 remaining"; and
+  //  (b) the merchant's default catalog tax is never applied to these ad-hoc
+  //      lines (per Clover docs).
+  // So we compute the tax exactly the way the POS does — group the taxable base
+  // by rate, round ONCE — and emit it as its own line item, with NO per-line
+  // taxRates. Then the amount charged equals the order total to the penny.
+  // We also emit one line per unit, with the chosen modifiers in the name, so
+  // the kitchen sees the order itemized instead of merged into one line.
+  const lineItems = [];
+  const taxByRate = new Map(); // key -> { name, rate, taxableSubtotal, flat }
+
+  for (const { id, qty, modifiers, note } of lines) {
     const unitQty = Math.floor(Number(qty));
     if (!ITEM_ID_PATTERN.test(id ?? '') || !Number.isFinite(unitQty) || unitQty < 1 || unitQty > 50) {
       throw invalidLine();
@@ -272,27 +287,43 @@ export async function createCheckout(merchant, env, { customer, lines }) {
     const chosenModifiers = submitted.map((modifierId) => modifiersById.get(modifierId));
     const unitPrice = item.price + modifierSum(chosenModifiers);
 
-    const taxRates = (item.taxRates ?? [])
-      .filter((rate) => typeof rate.rate === 'number' && Number.isFinite(rate.rate) && rate.rate > 0)
-      .map((rate) => ({
-        name: rate.name,
-        rate: rate.rate,
-      }));
-
-    // Hosted Checkout line items don't expose a first-class modifiers field,
-    // so keep selected options visible in the order note.
+    // Show chosen options on the line itself so they survive on a kitchen view
+    // even if the note doesn't render; keep the note as a backup.
+    const modSummary = chosenModifiers.map((mod) => mod.name).join(', ');
+    const lineName = (modSummary ? `${item.name} (${modSummary})` : item.name).slice(0, 127);
     const cleanNote = String(note ?? '').replace(/\s+/g, ' ').trim().slice(0, 255);
 
-    const line = {
-      name: item.name,
-      price: unitPrice,
-      unitQty,
-    };
-    if (taxRates.length > 0) line.taxRates = taxRates;
-    if (cleanNote) line.note = cleanNote;
+    // Accumulate the taxable base per distinct rate; Clover taxes the subtotal
+    // of same-rate items and rounds once — we mirror that after the loop.
+    for (const rate of item.taxRates ?? []) {
+      if (typeof rate.rate === 'number' && Number.isFinite(rate.rate) && rate.rate > 0) {
+        const key = rate.id ?? `${rate.name}:${rate.rate}`;
+        const entry = taxByRate.get(key)
+          ?? { name: rate.name || 'Sales Tax', rate: rate.rate, taxableSubtotal: 0, flat: 0 };
+        entry.taxableSubtotal += unitPrice * unitQty;
+        taxByRate.set(key, entry);
+      } else if (typeof rate.taxAmount === 'number' && Number.isFinite(rate.taxAmount) && rate.taxAmount > 0) {
+        const key = `flat:${rate.id ?? rate.name}`;
+        const entry = taxByRate.get(key)
+          ?? { name: rate.name || 'Fee', rate: 0, taxableSubtotal: 0, flat: 0 };
+        entry.flat += rate.taxAmount * unitQty;
+        taxByRate.set(key, entry);
+      }
+    }
 
-    return line;
-  });
+    for (let unit = 0; unit < unitQty; unit += 1) {
+      const line = { name: lineName, price: unitPrice, unitQty: 1 };
+      if (cleanNote) line.note = cleanNote;
+      lineItems.push(line);
+    }
+  }
+
+  // Emit tax as explicit line items (no taxRates), rounded once per rate so the
+  // charge matches the materialized order's total exactly — no leftover cent.
+  for (const entry of taxByRate.values()) {
+    const amount = entry.flat || Math.round((entry.taxableSubtotal * entry.rate) / 10_000_000);
+    if (amount > 0) lineItems.push({ name: entry.name, price: amount, unitQty: 1 });
+  }
 
   const email = String(customer?.email ?? '').trim();
   const fullName = String(customer?.name ?? '').trim();
@@ -339,4 +370,166 @@ export async function createCheckout(merchant, env, { customer, lines }) {
 
   const session = await response.json();
   return { url: session.href, sessionId: session.checkoutSessionId, expiresAt: session.expirationTime };
+}
+
+// ---------------------------------------------------------------------------
+// Atomic Order flow (replaces Hosted Checkout). Unlike the Invoicing Checkout
+// Service — whose line items are ad-hoc and NOT linked to Clover inventory —
+// the Atomic Order endpoint creates a real, inventory-linked order. That fixes
+// the three production issues at once:
+//   • tax is computed once by Clover (same engine as the POS), so the charged
+//     total equals the order total to the penny (no "$0.01 remaining");
+//   • line items stay itemized (groupLineItems:false, one line per unit), so
+//     the kitchen ticket is readable;
+//   • items reference the catalog, so they carry the category→printer mapping
+//     and structured modifiers, which is what lets them fire to the kitchen.
+// Card payment is taken separately via the Ecommerce API (see chargeOrder).
+// ---------------------------------------------------------------------------
+
+// Online orders need a real, taxable order type so Clover applies catalog tax
+// and the lines route to the kitchen printer. Resolved once per merchant.
+const ORDER_TYPE_CACHE = new Map(); // merchantId -> { orderType, expires }
+const ORDER_TYPE_TTL_MS = 5 * 60_000;
+const ONLINE_TYPE_HINT = /online|pick.?up|to.?go|web|delivery/i;
+
+async function resolveOrderType(merchant, env) {
+  const token = env[merchant.tokenEnv];
+  if (!token) throw new Error(`Missing ${merchant.tokenEnv} environment variable`);
+
+  const { merchantId } = merchant;
+  const cached = ORDER_TYPE_CACHE.get(merchantId);
+  if (cached && cached.expires > Date.now()) return cached.orderType;
+
+  const headers = { Authorization: `Bearer ${token}` };
+  const types = await fetchAll(`${CLOVER_BASE}/merchants/${merchantId}/order_types`, headers);
+  const usable = types.filter((type) => !type.isDeleted && !type.isHidden);
+  // Prefer a taxable channel that looks like online/pickup, then the merchant
+  // default, then any taxable type, then anything usable. A taxable order type
+  // is what makes Clover apply each item's configured sales tax.
+  const orderType =
+    usable.find((type) => type.taxable && ONLINE_TYPE_HINT.test(type.label || '')) ||
+    usable.find((type) => type.taxable && type.isDefault) ||
+    usable.find((type) => type.taxable) ||
+    usable.find((type) => type.isDefault) ||
+    usable[0] ||
+    null;
+
+  ORDER_TYPE_CACHE.set(merchantId, { orderType, expires: Date.now() + ORDER_TYPE_TTL_MS });
+  return orderType;
+}
+
+const ATOMIC_ORDER_URL = (merchantId) => `${CLOVER_BASE}/merchants/${merchantId}/atomic_order/orders`;
+
+// Builds and creates a Clover order from a validated cart. Prices, modifiers,
+// and taxes are resolved server-side from the live catalog — the client only
+// sends item ids and modifier ids, never prices — so a tampered cart can't
+// change what gets charged. Pass testMode:true to create a deletable, never-
+// charged order for validation. Returns { orderId, total, currency }.
+export async function createAtomicOrder(merchant, env, { customer, lines, testMode = false }) {
+  const token = env[merchant.tokenEnv];
+  if (!token) throw new Error(`Missing ${merchant.tokenEnv} environment variable`);
+
+  if (!Array.isArray(lines) || lines.length === 0 || lines.length > 50) {
+    throw Object.assign(new Error('Invalid cart'), { status: 400 });
+  }
+
+  const menu = await fetchMenu(merchant, env);
+  const itemsById = new Map();
+  for (const category of menu.categories) {
+    for (const item of category.items) itemsById.set(item.id, item);
+  }
+
+  const invalidLine = () => Object.assign(new Error('Invalid cart line'), { status: 400 });
+
+  // Each unit becomes its own line item so the kitchen sees them separated;
+  // groupLineItems:false keeps identical lines ungrouped on the printed ticket.
+  const lineItems = [];
+  for (const { id, qty, modifiers, note } of lines) {
+    const unitQty = Math.floor(Number(qty));
+    if (!ITEM_ID_PATTERN.test(id ?? '') || !Number.isFinite(unitQty) || unitQty < 1 || unitQty > 50) {
+      throw invalidLine();
+    }
+    const item = itemsById.get(id);
+    if (!item) throw invalidLine();
+
+    const submitted = Array.isArray(modifiers) ? modifiers : [];
+    if (submitted.length > 30) throw invalidLine();
+
+    const groupOfModifier = new Map();
+    for (const group of item.modifierGroups) {
+      for (const mod of group.modifiers) groupOfModifier.set(mod.id, group.id);
+    }
+
+    const countByGroup = new Map();
+    for (const modifierId of submitted) {
+      const groupId = groupOfModifier.get(modifierId);
+      if (!groupId) throw invalidLine(); // not a modifier of this item
+      countByGroup.set(groupId, (countByGroup.get(groupId) ?? 0) + 1);
+    }
+    for (const group of item.modifierGroups) {
+      const count = countByGroup.get(group.id) ?? 0;
+      if (count < group.minRequired) throw invalidLine();
+      if (group.maxAllowed > 0 && count > group.maxAllowed) throw invalidLine();
+    }
+
+    const cleanNote = String(note ?? '').replace(/\s+/g, ' ').trim().slice(0, 255);
+    const modifications = submitted.map((modifierId) => ({ modifier: { id: modifierId } }));
+
+    for (let unit = 0; unit < unitQty; unit += 1) {
+      const line = { item: { id } };
+      if (modifications.length > 0) line.modifications = modifications;
+      if (cleanNote) line.note = cleanNote;
+      lineItems.push(line);
+    }
+  }
+
+  const email = String(customer?.email ?? '').trim();
+  const fullName = String(customer?.name ?? '').trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    throw Object.assign(new Error('invalid_email'), { status: 400 });
+  }
+  if (!fullName) {
+    throw Object.assign(new Error('missing_name'), { status: 400 });
+  }
+
+  const orderType = await resolveOrderType(merchant, env);
+
+  const orderCart = {
+    groupLineItems: false,
+    note: `Online order — ${fullName}`.slice(0, 255),
+    lineItems,
+  };
+  if (orderType?.id) orderCart.orderType = { id: orderType.id };
+  if (testMode) orderCart.testMode = true;
+
+  const response = await fetch(ATOMIC_ORDER_URL(merchant.merchantId), {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      // The Atomic Order endpoint requires a User-Agent header.
+      'User-Agent': 'al-carbon-online/1.0',
+    },
+    body: JSON.stringify({ orderCart }),
+  });
+
+  if (!response.ok) {
+    const detail = await response.text().catch(() => '');
+    console.error(`Clover atomic order rejected (${response.status}):`, detail.slice(0, 500));
+    if (response.status >= 400 && response.status < 500) {
+      throw Object.assign(new Error('rejected_by_clover'), { status: 400 });
+    }
+    throw new Error(`Clover atomic order error ${response.status}`);
+  }
+
+  const order = await response.json();
+  // order.total is Clover's authoritative total in cents (subtotal + tax),
+  // computed exactly as the POS does — charge this amount and the order shows
+  // fully paid, with no penny left over.
+  return {
+    orderId: order.id,
+    total: order.total,
+    currency: order.currency || 'USD',
+    state: order.state,
+  };
 }
