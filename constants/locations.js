@@ -60,7 +60,7 @@ export const LOCATIONS = [
   },
   {
     name: 'Culebra 1',
-    orderLabel: '403 Culebra Rd',
+    orderLabel: 'Culebra 1',
     cloverSlug: 'culebra-1',
     address: '403 Culebra Rd, San Antonio, TX',
     compactAddress: '403 Culebra Rd, San Antonio, TX',
@@ -81,7 +81,7 @@ export const LOCATIONS = [
   },
   {
     name: 'Culebra 2',
-    orderLabel: '547 Culebra Rd',
+    orderLabel: 'Culebra 2',
     cloverSlug: 'culebra-2',
     address: '547 Culebra Rd, San Antonio, TX',
     compactAddress: '547 Culebra Rd, San Antonio, TX',
@@ -98,7 +98,7 @@ export const LOCATIONS = [
       grubhub: 'https://www.grubhub.com/restaurant/al-carbon-pollos-asados-547-culebra-rd-san-antonio/12671432',
     },
     orderUrl: '/menu?location=culebra-2',
-    cloverUrl: 'https://al-carbon-3-san-antonio.cloveronline.com/menu/all',
+    cloverUrl: 'https://al-carbon-2-san-antonio.cloveronline.com/',
     mapsUrl: 'https://www.google.com/maps?vet=10CAAQoqAOahcKEwjgrNKR6MaUAxUAAAAAHQAAAAAQFA..i&rlz=1CAFOSO_enMX1143&pvq=Cg0vZy8xMWY2MTIxaDRtIioKJEFsIENhcmJvbiBQb2xsb3MgQXNhZG9zIC0gQ3VsZWJyYSAjMRACGAM&lqi=CiRBbCBDYXJib24gUG9sbG9zIEFzYWRvcyAtIEN1bGVicmEgIzEiA4gBAUiT-YKRmK2AgAhaShAAEAEQAhADEAQQBRgAGAEYAhgDGAQiImFsIGNhcmJvbiBwb2xsb3MgYXNhZG9zIGN1bGVicmEgIzEqDggCEAAQARACEAMQBBAFkgESbWV4aWNhbl9yZXN0YXVyYW50mgFEQ2k5RFFVbFJRVU52WkVOb2RIbGpSamx2VDI1R1UyUnRaRzFXYWxwVFl6QlJkRXhYVmtOaFZYQXdZbTFhYmxORlJSQUL6AQQIABAv&fvr=1&cs=1&um=1&ie=UTF-8&fb=1&gl=mx&sa=X&ftid=0x865c5f01dce2f92d:0x14e6f9e98451faac',
     accent: 'from-white/10 via-primary/10 to-transparent',
   },
@@ -126,7 +126,7 @@ export const LOCATIONS = [
   },
   {
     name: 'Marbach',
-    orderLabel: '7310 Marbach Rd',
+    orderLabel: 'Marbach',
     cloverSlug: 'marbach',
     address: '7310 Marbach Rd, San Antonio, TX',
     compactAddress: '7310 Marbach Rd, San Antonio, TX',
