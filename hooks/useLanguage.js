@@ -454,6 +454,16 @@ export const TRANSLATIONS = {
       hideBranches: 'Ocultar otras sucursales',
       close: 'Cerrar',
     },
+    orderFlow: {
+      eyebrow: 'Order Pickup',
+      title: 'Elige tu sucursal',
+      subtitle: 'Selecciona la ubicacion donde quieres ordenar y te llevamos directo al menu de Clover.',
+      prompt: 'Ordenar en:',
+      orderAt: 'Ordenar en {{location}}',
+      phoneLabel: 'Telefono',
+      openMenu: 'Abrir menu',
+      close: 'Cerrar',
+    },
   },
   en: {
     nav: {
@@ -899,6 +909,16 @@ export const TRANSLATIONS = {
       changeAddress: 'Change address',
       otherBranches: 'See other locations',
       hideBranches: 'Hide other locations',
+      close: 'Close',
+    },
+    orderFlow: {
+      eyebrow: 'Order Pickup',
+      title: 'Choose your location',
+      subtitle: 'Select the location you want to order from and we will take you straight to its Clover menu.',
+      prompt: 'Order at:',
+      orderAt: 'Order at {{location}}',
+      phoneLabel: 'Phone',
+      openMenu: 'Open menu',
       close: 'Close',
     },
   },

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { revealStyle } from '../utils/revealStyle';
-import { PICKUP_URL } from '../constants/urls';
 import { LOCATIONS } from '../constants/locations';
 import { useLanguage } from '../hooks/useLanguage';
 import { useDelivery } from '../hooks/useDelivery';
@@ -96,7 +95,7 @@ export default function OrderingExperience() {
   const [imageRef, imageVisible] = useScrollReveal(0.12);
   const [ctaRef, ctaVisible] = useScrollReveal(0.12);
   const { t } = useLanguage();
-  const { openDelivery } = useDelivery();
+  const { openDelivery, openPickup } = useDelivery();
 
   return (
     <section id="order" className="relative overflow-hidden bg-white py-20 text-slate-900 md:py-24">
@@ -150,17 +149,16 @@ export default function OrderingExperience() {
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-            <a
-              href={PICKUP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={openPickup}
               className="inline-flex items-center justify-center gap-2 bg-primary px-7 py-4 text-base font-bold text-white shadow-cta transition-all duration-200 hover:scale-[1.02] hover:bg-primary-dark hover:shadow-cta-hover active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-white"
             >
               {t.common.pickup}
               <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
-            </a>
+            </button>
             <button
               type="button"
               onClick={openDelivery}
