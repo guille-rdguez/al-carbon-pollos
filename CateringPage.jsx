@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Navigation from './components/Navigation';
 import PromoBanner from './components/PromoBanner';
 import Footer from './components/Footer';
-import { CONTACT_EMAIL, EVERYDAY_HOURS, LOCATIONS } from './constants/locations';
+import { CATERING_EMAIL, EVERYDAY_HOURS, LOCATIONS } from './constants/locations';
 import { interpolate, useLanguage } from './hooks/useLanguage';
 import { useScrollReveal } from './hooks/useScrollReveal';
 import { revealStyle } from './utils/revealStyle';
@@ -444,7 +444,7 @@ function CateringForm() {
     }
 
     const subject = `Catering request - ${form.name || 'Al Carbon'} - ${form.eventDate || 'date TBD'}`;
-    const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(buildEmailBody())}`;
+    const mailto = `mailto:${CATERING_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(buildEmailBody())}`;
 
     setSubmitted(true);
     window.location.href = mailto;
@@ -548,8 +548,8 @@ function CateringForm() {
 
       <p className="text-xs leading-5 text-white/40" aria-live="polite">
         {submitted
-          ? interpolate(t.catering.form.sent, { email: CONTACT_EMAIL })
-          : interpolate(t.catering.form.help, { email: CONTACT_EMAIL })}
+          ? interpolate(t.catering.form.sent, { email: CATERING_EMAIL })
+          : interpolate(t.catering.form.help, { email: CATERING_EMAIL })}
       </p>
     </form>
   );
@@ -642,7 +642,7 @@ export default function CateringPage() {
                   </svg>
                 </a>
                 <a
-                  href={`mailto:${CONTACT_EMAIL}?subject=Catering%20Al%20Carbon`}
+                  href={`mailto:${CATERING_EMAIL}?subject=Catering%20Al%20Carbon`}
                   className="inline-flex items-center justify-center gap-2 border border-white/40 bg-white/10 px-7 py-4 text-lg font-bold text-white backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] hover:border-white hover:bg-white hover:text-black active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
                 >
                   {t.common.directEmail}
@@ -755,7 +755,7 @@ export default function CateringPage() {
               </h2>
               <p className="mt-5 max-w-xl text-base leading-8 text-white/50">
                 {t.catering.requestCopy}{' '}
-                <a href={`mailto:${CONTACT_EMAIL}`} className="font-bold text-primary hover:underline">{CONTACT_EMAIL}</a>.
+                <a href={`mailto:${CATERING_EMAIL}`} className="font-bold text-primary hover:underline">{CATERING_EMAIL}</a>.
               </p>
               <div className="mt-8 grid gap-3 text-sm text-white/50">
                 <div className="border border-white/10 bg-black/40 px-4 py-3">

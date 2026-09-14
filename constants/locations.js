@@ -1,5 +1,6 @@
 export const EVERYDAY_HOURS = '11:00 AM - 9:00 PM';
 export const CONTACT_EMAIL = 'admin@alcarbonsatx.restaurant';
+export const CATERING_EMAIL = 'catering@alcarbonsatx.com';
 
 export const BRAND_FACTS = [
   { value: '5', label: 'ubicaciones en San Antonio' },

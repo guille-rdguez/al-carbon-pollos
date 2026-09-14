@@ -1,4 +1,4 @@
-import { CONTACT_EMAIL } from '../constants/locations';
+import { CATERING_EMAIL } from '../constants/locations';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { revealStyle } from '../utils/revealStyle';
 import { useLanguage } from '../hooks/useLanguage';
@@ -49,7 +49,7 @@ export default function CateringCTA() {
               </svg>
             </a>
             <a
-              href={`mailto:${CONTACT_EMAIL}?subject=Catering%20Al%20Carbon`}
+              href={`mailto:${CATERING_EMAIL}?subject=Catering%20Al%20Carbon`}
               className="inline-flex items-center justify-center gap-2 border border-white/25 bg-white/[0.08] px-7 py-4 text-base font-bold text-white backdrop-blur-sm transition-all duration-200 hover:border-white hover:bg-white hover:text-black focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
             >
               {t.common.emailTeam}
